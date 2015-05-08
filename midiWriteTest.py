@@ -1,16 +1,19 @@
 from midiutil.MidiFile import MIDIFile
 import random
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 def t(measure=0, beats=0, eight=0):
     output = 0.0
     output = measure*4 + beats + eight/2
     return output
 
-def add(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,1,100)
+def addC(midi,pitch,time):
+    midi.addNote(0,0,pitch,time,4,100)
 
-def printChord(root,offset,note1,note2,note3,note4):
-    print "({}-{}-{}:{}{}{}) ".format(root,offset,note1,note2,note3,note4)
+def addM(midi,pitch,time):
+    midi.addNote(0,0,pitch,time,1,100)
 
 MyMIDI = MIDIFile(1)
 
@@ -42,15 +45,6 @@ keyPitch = {
     6: 62,
 }
 
-offsetPitch = {
-    0: 2,
-    1: 3,
-    2: 5,
-    3: 7,
-    4: 8,
-    5: 10,
-}
-
 notePitch = {
     0: 64,
     1: 66,
@@ -63,39 +57,67 @@ notePitch = {
 
 # sample usage
 '''
-add(MyMIDI,
-    pitch['g5'],
-    t(0,0,0))
+add(MyMIDI, pitch['g5'], t(0,0,0))
     '''
 
-# test case, random generated chords
-for i in range(32):
-    root = random.randint( 0, 6 )
+# components of a 4 measure phenotype
+#   4 chords each with 2 notes and 1 offset
+#   melodyLength between 1 and 8
+#   melodyStart offset between 1 and 3
+#   offsetForNote 1 through 8
+#   pitchForNote 1 through 8
 
-    offset = offsetPitch[random.randint( 0, 5 )] + keyPitch[root]
+# generate 4 measure phenotype
+chord11 = keyPitch[random.randint( 0, 6 )]
+chord12 = keyPitch[random.randint( 0, 6 )]
+while( chord11 == chord12 ):
+    chord12 = keyPitch[random.randint( 0, 6 )]
 
-    note1 = random.randint( 0, 6 )
+chord21 = keyPitch[random.randint( 0, 6 )]
+chord22 = keyPitch[random.randint( 0, 6 )]
+while( chord21 == chord22 ):
+    chord22 = keyPitch[random.randint( 0, 6 )]
+chord2offset = random.randint( -2, 2 )
 
-    note2 = random.randint( 0, 6 )
-    while( note2 == root or note2 == offset ):
-        note2 = random.randint( 0, 6 )
+chord31 = keyPitch[random.randint( 0, 6 )]
+chord32 = keyPitch[random.randint( 0, 6 )]
+while( chord31 == chord32 ):
+    chord32 = keyPitch[random.randint( 0, 6 )]
+chord3offset = random.randint( -2, 2 )
 
-    note3 = random.randint( 0, 6 )
+chord41 = keyPitch[random.randint( 0, 6 )]
+chord42 = keyPitch[random.randint( 0, 6 )]
+while( chord41 == chord42 ):
+    chord42 = keyPitch[random.randint( 0, 6 )]
+chord4offset = random.randint( -2, 2 )
 
-    note4 = random.randint( 0, 6 )
-    while( note4 == note3 ):
-        note4 = random.randint( 0, 6 )
+melodyLength = random.randint( 3, 8 )
+melodyStart = random.randint( 1, 3 )
 
-    beat = 0
+pitch = []
+offset = []
 
-    printChord( root, offset, note1, note2, note3, note4 )
-    add(MyMIDI, keyPitch[root], t(i,beat,0))
-    add(MyMIDI, keyPitch[root]-24, t(i,beat,0))
-    add(MyMIDI, offset, t(i,beat,0))
-    add(MyMIDI, notePitch[note1], t(i,beat,0))
-    add(MyMIDI, notePitch[note2], t(i,beat+1,0))
-    add(MyMIDI, notePitch[note3], t(i,beat+2,0))
-    add(MyMIDI, notePitch[note4], t(i,beat+3,0))
+for i in range(9):
+    thisPitch = notePitch[random.randint( 0, 6 )]
+    thisOffset = random.randint( 1, 5 )
+    pitch.append(thisPitch)
+    offset.append(thisOffset)
+
+addC(MyMIDI, chord11, t(0,0,0))
+addC(MyMIDI, chord12, t(0,0,0))
+addC(MyMIDI, chord21, t(1,0,chord2offset))
+addC(MyMIDI, chord22, t(1,0,chord2offset))
+addC(MyMIDI, chord31, t(2,0,chord3offset))
+addC(MyMIDI, chord32, t(2,0,chord3offset))
+addC(MyMIDI, chord41, t(3,0,chord4offset))
+addC(MyMIDI, chord42, t(3,0,chord4offset))
+
+for i in range(4):
+    measure = 2 * i
+    runningOffset = 0
+    for j in range(melodyLength):
+        runningOffset += offset[j]
+        addM(MyMIDI, pitch[j], t(measure,0,runningOffset))
 
 # And write it to disk.
 binfile = open("output.mid", 'wb')
