@@ -58,7 +58,7 @@ notePitch = {
 # sample usage
 '''
 add(MyMIDI, pitch['g5'], t(0,0,0))
-    '''
+'''
 
 # components of a 4 measure phenotype
 #   4 chords each with 2 notes and 1 offset
