@@ -3,14 +3,7 @@ import random
 import pprint
 from models import *
 
-def addC(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,4,100)
-
-def addM(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,1,100)
-
 MyMIDI = MIDIFile(1)
-
 MyMIDI.addTrackName(0,0,"Requiem")
 MyMIDI.addTempo(0,0,90)
 
@@ -67,6 +60,7 @@ for this_s in p.sequence:
     this_s.melody = m
 
 p.printSelf()
+p.midiOut(MyMIDI)
 
 binfile = open("output.mid", 'wb')
 MyMIDI.writeFile(binfile)
