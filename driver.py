@@ -30,14 +30,18 @@ mPitch = {
 # cascade down and create all objects in proper amounts
 p = phenotype()
 
-seq = sequence()
+num_seqs = 3
 
-p.sequence.append( seq )
+for seq_counter in xrange(num_seqs):
+    seq = sequence()
+    seq.chord = []
 
-for this_s in p.sequence:
-    num_chords = 3 + random.randint( 0, 2 )
+    num_chords = 3 + random.randint( 0, 5 )
+    repetitions = 1 + random.randint( 0, 1 )
+    repetitions *= 2
+    seq.repetitions = repetitions
 
-    for i in xrange(num_chords):
+    for chord_counter in xrange(num_chords):
         c = chord()
         c.chord_note = chord_note()
         c.offnote = chord_note()
@@ -45,19 +49,23 @@ for this_s in p.sequence:
         c.offnote.pitch = cPitch[random.randint( 0, 6 )]
         while( c.chord_note.pitch == c.offnote.pitch ):
             c.offnote.pitch = cPitch[random.randint( 0, 6 )]
-        c.offset = random.randint( -2, 2 )
+        c.offset = random.randint( -5, 5 )
 
-        this_s.chord.append(c)
+        seq.chord.append(c)
 
-    m = melody()
-    melody_length = random.randint( 3, 7 )
-    for i in xrange(melody_length):
+    melody_length = random.randint( 2, 6 )
+
+    seq.melody = melody()
+    seq.melody.note = []
+
+    for melody_counter in xrange(melody_length):
         note = melody_note()
         note.pitch = mPitch[random.randint( 0, 6 )]
-        note.pause = random.randint( 1, 5 )
-        m.note.append(note)
+        note.pause = random.randint( 1, 7 )
+        seq.melody.note.append(note)
 
-    this_s.melody = m
+    p.sequence.append( seq )
+
 
 p.printSelf()
 p.midiOut(MyMIDI)

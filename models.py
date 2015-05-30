@@ -11,45 +11,48 @@ def t(measure=0, beats=0, eight=0):
 
 class phenotype():
     sequence = []
+    currentMeasure = 0
 
     def printSelf(self):
+        print "START"
         for s in self.sequence:
-            print "START"
             s.printSelf()
 
     def midiOut(self, midi):
         for s in self.sequence:
-            s.midiOut(midi)
+            self.currentMeasure = s.midiOut(midi, self.currentMeasure)
 
 class sequence():
     chord = []
     melody = ""
+    repetitions = ""
     delta = []
 
     def printSelf(self):
-        print "Sequence: "
+        print "Sequence ({} chords, {} melody, {} repetitions): ".format( len(self.chord),
+                                                                          len(self.melody.note),
+                                                                          self.repetitions)
         for c in self.chord:
             c.printSelf()
         self.melody.printSelf()
         for d in self.delta:
             print "{}".format(d.toString())
 
-    def midiOut(self,midi):
-        # TODO change to sequence length to allow multi sequences
-        currentMeasure = 0
-        for i in xrange(4): # length of song
+    def midiOut(self,midi,startingMeasure):
+        currentMeasure = startingMeasure
+        for i in xrange(self.repetitions):
             currentChord = 0
             for c in self.chord:
                 c.midiOut(midi, currentMeasure, currentChord)
                 currentChord += 1
             currentMeasure += 4
 
-        # TODO change to sequence length to allow multi sequences
-        currentMeasure = 0
-
-        for i in xrange(8):
+        currentMeasure = startingMeasure
+        for i in xrange(self.repetitions*2):
             self.melody.midiOut(midi, currentMeasure)
             currentMeasure += 2
+
+        return currentMeasure
 
 class chord():
     chord_note = ""
@@ -105,7 +108,7 @@ class melody_note():
             print " - - {}".format(d.toString())
 
     def midiOut(self, midi, currentMeasure, currentPause):
-        addM(midi, self.pitch, t(currentMeasure, currentPause, 0 ))
+        addM(midi, self.pitch, t(currentMeasure, 0, currentPause ))
 
 class delta():
     modifies = ""
