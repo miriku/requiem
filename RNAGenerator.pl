@@ -13,7 +13,7 @@ sub crossPollinate
 
   # 60 base pairs per line, 153 lines
   # for each line
-  for( my $i = 0; $i < 153; $i++ )
+  for( my $i = 0; $i < 1; $i++ )
   {
     my $A = <RHA>;
     my @A = split //, $A;
@@ -22,9 +22,9 @@ sub crossPollinate
     my @C;
 
     # for each base pair
-    for( my $j = 0; $j < 60; $j++ )
+    for( my $j = 0; $j < 153*60; $j++ )
     {
-      # are we out of orders? if so figure out new source
+      # are we done copying last batch? if so figure out which virus we read from
       if( $readAhead == 0 )
       {
         # time to find out which file we will read, or if we will mutate
@@ -73,8 +73,6 @@ sub crossPollinate
     print RHC "\n";
   }
 
-  # last base pair and close file
-  print RHC "c\n";
   close( RHA );
   close( RHB );
   close( RHC );

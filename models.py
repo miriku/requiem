@@ -14,7 +14,7 @@ class phenotype():
     currentMeasure = 0
 
     def printSelf(self):
-        print "START"
+        print "PHENOTYPE OF {}".format( len(self.sequence))
         for s in self.sequence:
             s.printSelf()
 
@@ -78,7 +78,7 @@ class chord_note():
         print " - - {} ({})".format(self.pitch, offset)
 
     def midiOut(self, midi, offset, currentMeasure, currentChord):
-        addC(midi, self.pitch, t(currentMeasure, currentChord, offset ))
+        addC(midi, self.pitch, t(currentMeasure, currentChord*8+offset))
 
 class melody():
     note = []
