@@ -4,10 +4,6 @@ import pprint
 import sys
 from models import *
 
-MyMIDI = MIDIFile(1)
-MyMIDI.addTrackName(0,0,"Requiem")
-MyMIDI.addTempo(0,0,90)
-
 cPitch = {
     0: 52,
     1: 54,
@@ -27,8 +23,6 @@ mPitch = {
     5: 72,
     6: 74,
 }
-
-codons = []
 
 def convertPitchToIndex(pitch):
     if pitch == 64: return 0
@@ -237,55 +231,63 @@ def parseCodons(phenotype, genotype, readOffset, codon):
 
             readOffset += 1
 
-
-
-
 # CODE START
+for i in xrange(32):
+    requiemNumber = i+1
 
-p = phenotype()
+    MyMIDI = MIDIFile(1)
+    MyMIDI.addTrackName(0,0,"Requiem {}".format(requiemNumber))
+    MyMIDI.addTempo(0,0,100)
 
-# kickstart the host cell
-seq = sequence()
-seq.chord = []
-c = chord()
-c.chord_note = chord_note()
-c.offnote = chord_note()
-c.chord_note.pitch = cPitch[0]
-c.offnote.pitch = cPitch[3]
-c.offset = 8
-seq.chord.append(c)
-c.offset = 0
-seq.chord.append(c)
-seq.melody = melody()
-seq.melody.note = []
-for melody_counter in xrange(4):
-    note = melody_note()
-    note.pitch = mPitch[0]
-    note.pause = 4
-    seq.melody.note.append(note)
-seq.repetitions = 2
-p.sequence.append(seq)
+    p = phenotype()
 
-fd = open("rna/32",'rU')
-genotype = []
-for line in fd:
-   for c in line:
-       genotype.append(c)
+    while(len(p.sequence) > 0):
+        del p.sequence[-1]
 
-readOffset = 0
+    # kickstart the host cell
+    seq = sequence()
+    seq.chord = []
+    c = chord()
+    c.chord_note = chord_note()
+    c.offnote = chord_note()
+    c.chord_note.pitch = cPitch[0]
+    c.offnote.pitch = cPitch[3]
+    c.offset = 8
+    seq.chord.append(c)
+    c.offset = 0
+    seq.chord.append(c)
+    seq.melody = melody()
+    seq.melody.note = []
+    for melody_counter in xrange(4):
+        note = melody_note()
+        note.pitch = mPitch[0]
+        note.pause = 4
+        seq.melody.note.append(note)
+    seq.repetitions = 2
+    p.sequence.append(seq)
 
-for basepair in genotype:
-    if( basepair == 'a' ):
-        codon = checkForCodon( genotype, readOffset )
-        if(codon != ""):
-            parseCodons(p, genotype, readOffset, codon)
-            codons.append(codon)
-    readOffset+=1
+    file = i+1
+    rnaFile = "rna/{}".format(file)
+    midiFile = "midi/{}.mid".format(file)
+    fd = open(rnaFile,'rU')
+    genotype = []
+    for line in fd:
+       for c in line:
+           genotype.append(c)
+
+    readOffset = 0
+
+    for basepair in genotype:
+        if( basepair == 'a' ):
+            codon = checkForCodon( genotype, readOffset )
+            if(codon != ""):
+                parseCodons(p, genotype, readOffset, codon)
+        readOffset+=1
 
 
-p.printSelf()
-p.midiOut(MyMIDI)
+    #p.printSelf()
+    p.midiOut(MyMIDI)
 
-binfile = open("output.mid", 'wb')
-MyMIDI.writeFile(binfile)
-binfile.close()
+    binfile = open(midiFile, 'wb')
+    MyMIDI.writeFile(binfile)
+    binfile.close()
