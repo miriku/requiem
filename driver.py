@@ -73,17 +73,6 @@ def parseCodons(phenotype, genotype, readOffset, codon):
 
         phenotype.sequence.append(seq)
 
-    '''
-    if( codon == "deleteSequence"):
-        if len(phenotype.sequence) == 1:
-            del phenotype.sequence[-1]
-            seq = sequence()
-            seq.melody = melody()
-            seq.repetitions = 2
-
-            phenotype.sequence.append(seq)
-    '''
-
     if(codon == "addChord"):
         # skip codon
         readOffset = readOffset+5
@@ -231,6 +220,74 @@ def parseCodons(phenotype, genotype, readOffset, codon):
 
             readOffset += 1
 
+def printCodon(codon, genotype, readOffset, writeOffset, wd):
+    color = "White"
+    afterColor = "White"
+
+    if( codon == "addChord" ):
+        color = "DodgerBlue"
+        afterColor = "DeepSkyBlue"
+    elif( codon == "deleteChord" ):
+        color = "Green"
+        afterColor = "LightGreen"
+    elif( codon == "addSequence" ):
+        color = "Grey"
+    elif( codon == "deleteSequence" ):
+        color = "LightGrey"
+    elif( codon == "addNote" ):
+        color = "Brown"
+        afterColor = "Crimson"
+    elif( codon == "deleteNote" ):
+        color = "LightCoral"
+        afterColor = "LightSalmon"
+    elif( codon == "offsetNote" ):
+        color = "Indigo"
+        afterColor = "DarkViolet"
+    elif( codon == "pitchNote" ):
+        color = "Pink"
+        afterColor = "LightPink"
+
+    wd.write( "<font color='{}'><u>".format(color) )
+
+    for i in xrange(5):
+        wd.write( genotype[readOffset] )
+        readOffset += 1
+        writeOffset+=1
+        if( writeOffset == 64 ):
+            wd.write( "<br>\n")
+            writeOffset = 0
+
+    wd.write( "</u></font><font color='{}'>".format(afterColor) )
+
+    while True:
+        if( writeOffset == 64 ):
+            wd.write( "<br>\n")
+            writeOffset = 0
+        if(genotype[readOffset] == 'c') and (genotype[readOffset+1] == 'c' ):
+            wd.write( "</font><font color='DarkGray'><u>" )
+            wd.write( genotype[readOffset] )
+            writeOffset+=1
+            if( writeOffset == 64 ):
+                wd.write( "<br>\n")
+                writeOffset = 0
+            wd.write( genotype[readOffset+1] )
+            writeOffset+=1
+            wd.write( "</u></font>" )
+            if( writeOffset == 64 ):
+                wd.write( "<br>\n")
+                writeOffset = 0
+            break
+
+        if( writeOffset == 64 ):
+            wd.write( "<br>\n")
+            writeOffset = 0
+
+        wd.write( genotype[readOffset] )
+        writeOffset+=1
+        readOffset += 1
+
+    return writeOffset
+
 # CODE START
 for i in xrange(32):
     requiemNumber = i+1
@@ -269,19 +326,33 @@ for i in xrange(32):
     file = i+1
     rnaFile = "rna/{}".format(file)
     midiFile = "midi/{}.mid".format(file)
+    htmlFile = "html/{}.html".format(file)
     fd = open(rnaFile,'rU')
+    wd = open(htmlFile,'w')
+
+    wd.write( "<html><body bgcolor='black'><font color='White' " +
+                "face='Monaco'>\n" )
+
     genotype = []
     for line in fd:
        for c in line:
            genotype.append(c)
 
     readOffset = 0
+    writeOffset = 0
 
     for basepair in genotype:
         if( basepair == 'a' ):
             codon = checkForCodon( genotype, readOffset )
             if(codon != ""):
                 parseCodons(p, genotype, readOffset, codon)
+                writeOffset = printCodon(codon, genotype, readOffset, writeOffset, wd)
+        else:
+            wd.write( basepair )
+            writeOffset+=1
+            if( writeOffset == 64 ):
+                wd.write( "<br>\n")
+                writeOffset = 0
         readOffset+=1
 
 
