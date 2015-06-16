@@ -94,13 +94,13 @@ def parseCodons(phenotype, genotype, readOffset, codon):
             except:
                 break
 
-            if( letter == 'g' ):
+            if( letter == 'a' ):
                 pitch1 += 1
                 pitch1 %= 7
             if( letter == 'c' ):
                 pitch2 += 1
                 pitch2 %= 7
-            if( letter == 'a' ):
+            if( letter == 'g' ):
                 offset += 1
                 offset %= 16
             if( letter == 't' ):
@@ -164,18 +164,18 @@ def parseCodons(phenotype, genotype, readOffset, codon):
             except:
                 break
 
-            if( letter == 'g' ):
+            if( letter == 'a' ):
                 onNote += 1
                 onNote %= maxNotes
-            if( letter == 'c' ):
+            if( letter == 't' ):
                 onNote -= 1
                 onNote %= maxNotes
-            if( letter == 'a' ):
+            if( letter == 'c' ):
                 pitch = convertPitchToIndex(phenotype.sequence[-1].melody.note[onNote].pitch)
                 pitch += 1
                 pitch %= 7
                 phenotype.sequence[-1].melody.note[onNote].pitch = mPitch[pitch]
-            if( letter == 't' ):
+            if( letter == 'g' ):
                 pitch = convertPitchToIndex(phenotype.sequence[-1].melody.note[onNote].pitch)
                 pitch += 1
                 pitch %= 7
