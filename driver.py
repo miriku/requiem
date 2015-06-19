@@ -41,42 +41,43 @@ def checkForCodon(genotype, readOffset):
     codonCandidate.append(genotype[readOffset+2])
     codonCandidate.append(genotype[readOffset+3])
     codonCandidate.append(genotype[readOffset+4])
+    codonCandidate.append(genotype[readOffset+5])
 
     codonCandidate = ''.join(codonCandidate)
 
-    if( codonCandidate == "aaaaa" ):
+    if( codonCandidate == "aaaagg" or codonCandidate == "caaagg"
+        or codonCandidate == "gaaagg" or codonCandidate == "taaagg" ):
         return "addChord"
-    elif( codonCandidate == "aaaat" ):
+    elif( codonCandidate == "aaagtg" or codonCandidate == "caagtg"):
         return "deleteChord"
-    elif( codonCandidate == "atttc" ):
+    elif( codonCandidate == "aatgtg" or codonCandidate == "catgtg" ):
         return "addSequence"
-    elif( codonCandidate == "agacc" ):
+    elif( codonCandidate == "aaagct" or codonCandidate == "caagcg"
+        or codonCandidate == "gaagct" or codonCandidate == "taagct" ):
         return "deleteSequence"
-    elif( codonCandidate.startswith('aca')):
+    elif( codonCandidate.startswith('aaaac') or codonCandidate.startswith('caaac')
+        or codonCandidate.startswith('gaaac') or codonCandidate.startswith('taaac' )):
         return "addNote"
-    elif( codonCandidate.startswith('acc')):
-        return "deleteNote"
-    elif( codonCandidate.startswith('acg')):
+    elif( codonCandidate.startswith('aacgg') or codonCandidate.startswith('cacgg')
+        or codonCandidate.startswith('gacgg') or codonCandidate.startswith('tacgg' )):
         return "offsetNote"
-    elif( codonCandidate.startswith('act')):
+    elif( codonCandidate.startswith('aactg') or codonCandidate.startswith('cactg')
+        or codonCandidate.startswith('gactg') or codonCandidate.startswith('tactg' )):
         return "pitchNote"
     else:
         return ""
 
 def parseCodons(phenotype, genotype, readOffset, codon):
-    if(codon == "addSequence"):
-        # add new sequence
-        # append to phenotype
-        seq = sequence()
-        seq.melody = melody()
-        seq.repetitions = 2
+    # skip codon
+    readOffset = readOffset+6
 
-        phenotype.sequence.append(seq)
+    if(codon == "addSequence"):
+        phenotype.activeSequence += 1
+        if( phenotype.activeSequence > 9 ):
+            phenotype.activeSequence = 9
+        #codon = "addNote"
 
     if(codon == "addChord"):
-        # skip codon
-        readOffset = readOffset+5
-
         c = chord()
         pitch1 = 0
         pitch2 = 0
@@ -121,36 +122,56 @@ def parseCodons(phenotype, genotype, readOffset, codon):
         c.offnote = c_note
         c.offset = offset
 
-        if len(phenotype.sequence[-1].chord) < 7:
-            phenotype.sequence[-1].chord.append(c)
+        if len(phenotype.sequences[phenotype.activeSequence].chord) < 7:
+            phenotype.sequences[phenotype.activeSequence].chord.append(c)
 
     if(codon == "addNote"):
-        # skip codon
-        readOffset = readOffset+5
-
         n = melody_note()
-        n.pitch = mPitch[0]
+        n.pitch = mPitch[5]
         n.pause = 4
 
-        if len(phenotype.sequence[-1].melody.note) < 7:
-            phenotype.sequence[-1].melody.note.append(n)
+        if len(phenotype.sequences[phenotype.activeSequence].melody.note) == 8:
+            del phenotype.sequences[phenotype.activeSequence].melody.note[0]
+        phenotype.sequences[phenotype.activeSequence].melody.note.append(n)
+
+        codon = "pitchNote"
 
     if( codon == "deleteNote"):
-        # skip codon
-        readOffset = readOffset+5
+        if( len(phenotype.sequences[phenotype.activeSequence].melody.note) < 2 ):
+            # no op
+            1
+        else:
+            onNote = 0
+            maxNotes = len(phenotype.sequences[phenotype.activeSequence].melody.note)
+            while True:
+                # possibly break out
+                if(genotype[readOffset] == 'c') and (genotype[readOffset+1] == 'c' ):
+                    break
 
-        if( len(phenotype.sequence[-1].melody.note)>0 ):
-            del phenotype.sequence[-1].melody.note[-1]
+                # otherwise parse letter
+                letter = ""
+                try:
+                    letter = genotype[readOffset]
+                except:
+                    break
+
+                if( letter == 'a' or letter == 'c' ):
+                    onNote += 1
+                    onNote %= maxNotes
+                if( letter == 't' or letter == 'g' ):
+                    onNote += 3
+                    onNote %= maxNotes
+
+                readOffset += 1
+
+            del phenotype.sequences[phenotype.activeSequence].melody.note[onNote]
 
     if( codon == "pitchNote"):
-        # skip codon
-        readOffset = readOffset+5
-
-        if( len(phenotype.sequence[-1].melody.note) == 0 ):
+        if( len(phenotype.sequences[phenotype.activeSequence].melody.note) == 0 ):
             return
 
         onNote = 0
-        maxNotes = len(phenotype.sequence[-1].melody.note)
+        maxNotes = len(phenotype.sequences[phenotype.activeSequence].melody.note)
 
         while True:
             # possibly break out
@@ -168,30 +189,27 @@ def parseCodons(phenotype, genotype, readOffset, codon):
                 onNote += 1
                 onNote %= maxNotes
             if( letter == 't' ):
-                onNote -= 1
+                onNote += 3
                 onNote %= maxNotes
             if( letter == 'c' ):
-                pitch = convertPitchToIndex(phenotype.sequence[-1].melody.note[onNote].pitch)
+                pitch = convertPitchToIndex(phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pitch)
                 pitch += 1
                 pitch %= 7
-                phenotype.sequence[-1].melody.note[onNote].pitch = mPitch[pitch]
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pitch = mPitch[pitch]
             if( letter == 'g' ):
-                pitch = convertPitchToIndex(phenotype.sequence[-1].melody.note[onNote].pitch)
+                pitch = convertPitchToIndex(phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pitch)
                 pitch += 1
                 pitch %= 7
-                phenotype.sequence[-1].melody.note[onNote].pitch = mPitch[pitch]
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pitch = mPitch[pitch]
 
             readOffset += 1
 
     if( codon == "offsetNote"):
-        # skip codon
-        readOffset = readOffset+5
-
-        if( len(phenotype.sequence[-1].melody.note) == 0 ):
+        if( len(phenotype.sequences[phenotype.activeSequence].melody.note) == 0 ):
             return
 
         onNote = 0
-        maxNotes = len(phenotype.sequence[-1].melody.note)
+        maxNotes = len(phenotype.sequences[phenotype.activeSequence].melody.note)
 
         while True:
             # possibly break out
@@ -212,11 +230,11 @@ def parseCodons(phenotype, genotype, readOffset, codon):
                 onNote -= 1
                 onNote %= maxNotes
             if( letter == 'a' ):
-                phenotype.sequence[-1].melody.note[onNote].pause += 1
-                phenotype.sequence[-1].melody.note[onNote].pause %= 7
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pause += 1
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pause %= 14
             if( letter == 't' ):
-                phenotype.sequence[-1].melody.note[onNote].pause += 1
-                phenotype.sequence[-1].melody.note[onNote].pause %= 7
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pause += 1
+                phenotype.sequences[phenotype.activeSequence].melody.note[onNote].pause %= 14
 
             readOffset += 1
 
@@ -233,13 +251,11 @@ def printCodon(codon, genotype, readOffset, writeOffset, wd):
     elif( codon == "addSequence" ):
         color = "Grey"
     elif( codon == "deleteSequence" ):
-        color = "LightGrey"
+        color = "Salmon"
+        afterColor = "LightPink"
     elif( codon == "addNote" ):
         color = "Brown"
         afterColor = "Crimson"
-    elif( codon == "deleteNote" ):
-        color = "LightCoral"
-        afterColor = "LightSalmon"
     elif( codon == "offsetNote" ):
         color = "Indigo"
         afterColor = "DarkViolet"
@@ -249,7 +265,7 @@ def printCodon(codon, genotype, readOffset, writeOffset, wd):
 
     wd.write( "<font color='{}'><u>".format(color) )
 
-    for i in xrange(5):
+    for i in xrange(6):
         wd.write( genotype[readOffset] )
         readOffset += 1
         writeOffset+=1
@@ -289,76 +305,72 @@ def printCodon(codon, genotype, readOffset, writeOffset, wd):
     return writeOffset
 
 # CODE START
-for i in xrange(32):
-    requiemNumber = i+1
+i = int(sys.argv[1])
+requiemNumber = i+1
 
-    MyMIDI = MIDIFile(1)
-    MyMIDI.addTrackName(0,0,"Requiem {}".format(requiemNumber))
-    MyMIDI.addTempo(0,0,100)
+MyMIDI = MIDIFile(1)
+MyMIDI.addTrackName(0,0,"Requiem {}".format(requiemNumber))
+MyMIDI.addTempo(0,0,100)
 
-    p = phenotype()
+p = phenotype()
 
-    while(len(p.sequence) > 0):
-        del p.sequence[-1]
+# kickstart the host cell
+seq = sequence()
+seq.chord = []
+c = chord()
+c.chord_note = chord_note()
+c.offnote = chord_note()
+c.chord_note.pitch = cPitch[0]
+c.offnote.pitch = cPitch[3]
+c.offset = 8
+seq.chord.append(c)
+c.offset = 0
+seq.chord.append(c)
+seq.melody = melody()
+seq.melody.note = []
+for melody_counter in xrange(4):
+    note = melody_note()
+    note.pitch = mPitch[0]
+    note.pause = 8
+    seq.melody.note.append(note)
+seq.repetitions = 2
+p.sequences[0] = seq
 
-    # kickstart the host cell
-    seq = sequence()
-    seq.chord = []
-    c = chord()
-    c.chord_note = chord_note()
-    c.offnote = chord_note()
-    c.chord_note.pitch = cPitch[0]
-    c.offnote.pitch = cPitch[3]
-    c.offset = 8
-    seq.chord.append(c)
-    c.offset = 0
-    seq.chord.append(c)
-    seq.melody = melody()
-    seq.melody.note = []
-    for melody_counter in xrange(4):
-        note = melody_note()
-        note.pitch = mPitch[0]
-        note.pause = 4
-        seq.melody.note.append(note)
-    seq.repetitions = 2
-    p.sequence.append(seq)
+file = i+1
+rnaFile = "rna/{}".format(file)
+midiFile = "midi/{}.mid".format(file)
+htmlFile = "html/{}.html".format(file)
+fd = open(rnaFile,'rU')
+wd = open(htmlFile,'w')
 
-    file = i+1
-    rnaFile = "rna/{}".format(file)
-    midiFile = "midi/{}.mid".format(file)
-    htmlFile = "html/{}.html".format(file)
-    fd = open(rnaFile,'rU')
-    wd = open(htmlFile,'w')
+wd.write( "<html><body bgcolor='black'><font color='White' " +
+            "face='Monaco'>\n" )
 
-    wd.write( "<html><body bgcolor='black'><font color='White' " +
-                "face='Monaco'>\n" )
+genotype = []
+for line in fd:
+   for c in line:
+       genotype.append(c)
 
-    genotype = []
-    for line in fd:
-       for c in line:
-           genotype.append(c)
+readOffset = 0
+writeOffset = 0
 
-    readOffset = 0
-    writeOffset = 0
-
-    for basepair in genotype:
-        if( basepair == 'a' ):
-            codon = checkForCodon( genotype, readOffset )
-            if(codon != ""):
-                parseCodons(p, genotype, readOffset, codon)
-                writeOffset = printCodon(codon, genotype, readOffset, writeOffset, wd)
+for basepair in genotype:
+    if( len(genotype) - readOffset > 5 ):
+        codon = checkForCodon( genotype, readOffset )
+        if(codon != ""):
+            parseCodons(p, genotype, readOffset, codon)
+            writeOffset = printCodon(codon, genotype, readOffset, writeOffset, wd)
         else:
             wd.write( basepair )
             writeOffset+=1
             if( writeOffset == 64 ):
                 wd.write( "<br>\n")
                 writeOffset = 0
-        readOffset+=1
+    readOffset+=1
 
+p.printSelf()
+p.midiOut(MyMIDI)
 
-    #p.printSelf()
-    p.midiOut(MyMIDI)
-
-    binfile = open(midiFile, 'wb')
-    MyMIDI.writeFile(binfile)
-    binfile.close()
+binfile = open(midiFile, 'wb')
+MyMIDI.writeFile(binfile)
+binfile.close()

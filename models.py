@@ -1,26 +1,30 @@
 def addC(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,6,100)
+    midi.addNote(0,0,pitch,time,6,80)
 
 def addM(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,3,100)
+    midi.addNote(0,0,pitch,time,4.5,70)
 
 def t(measure=0, beats=0, eight=0):
     output = 0.0
     output = measure*4 + beats + eight/2
     return output
 
-class phenotype():
-    sequence = []
-    currentMeasure = 0
+class melody():
+    note = []
+    delta = []
 
     def printSelf(self):
-        print "PHENOTYPE OF {}".format( len(self.sequence))
-        for s in self.sequence:
-            s.printSelf()
+        print " - Melody:"
+        for n in self.note:
+            n.printSelf()
+        for d in self.delta:
+            print " - {}".format(d.toString())
 
-    def midiOut(self, midi):
-        for s in self.sequence:
-            self.currentMeasure = s.midiOut(midi, self.currentMeasure)
+    def midiOut(self, midi, currentMeasure):
+        currentPause = 0.0
+        for n in self.note:
+            n.midiOut(midi, currentMeasure, currentPause)
+            currentPause += (n.pause / 2)
 
 class sequence():
     chord = []
@@ -29,6 +33,9 @@ class sequence():
     delta = []
 
     def printSelf(self):
+        if( len(self.chord) < 2 or len(self.melody.note) < 2):
+            return
+
         print "Sequence ({} chords, {} melody, {} repetitions): ".format( len(self.chord),
                                                                           len(self.melody.note),
                                                                           self.repetitions)
@@ -39,6 +46,9 @@ class sequence():
             print "{}".format(d.toString())
 
     def midiOut(self,midi,startingMeasure):
+        if( len(self.chord) < 2 or len(self.melody.note) < 2):
+            return startingMeasure
+
         currentMeasure = startingMeasure
         for i in xrange(self.repetitions):
             currentChord = 0
@@ -53,6 +63,31 @@ class sequence():
             currentMeasure += 2
 
         return currentMeasure
+
+class phenotype():
+    activeSequence = 0
+    sequences = []
+    currentMeasure = 0
+
+    def __init__(self):
+        for i in xrange(10):
+            seq = sequence()
+            seq.chord = []
+            c = chord()
+            seq.melody = melody()
+            seq.melody.note = []
+            seq.repetitions = 4
+            self.sequences.append(seq)
+
+    def printSelf(self):
+        print "PHENOTYPE OF {}".format( self.activeSequence+1 )
+        for i in xrange(self.activeSequence+1):
+            self.sequences[i].printSelf()
+
+    def midiOut(self, midi):
+        i = 0
+        for i in xrange(self.activeSequence+1):
+            self.currentMeasure = self.sequences[i].midiOut(midi, self.currentMeasure)
 
 class chord():
     chord_note = ""
@@ -79,23 +114,6 @@ class chord_note():
 
     def midiOut(self, midi, offset, currentMeasure, currentChord):
         addC(midi, self.pitch, t(currentMeasure, currentChord*8+offset))
-
-class melody():
-    note = []
-    delta = []
-
-    def printSelf(self):
-        print " - Melody:"
-        for n in self.note:
-            n.printSelf()
-        for d in self.delta:
-            print " - {}".format(d.toString())
-
-    def midiOut(self, midi, currentMeasure):
-        currentPause = 0
-        for n in self.note:
-            n.midiOut(midi, currentMeasure, currentPause)
-            currentPause += n.pause
 
 class melody_note():
     pitch = ""
