@@ -249,10 +249,10 @@ def printCodon(codon, genotype, readOffset, writeOffset, wd):
         color = "Green"
         afterColor = "LightGreen"
     elif( codon == "addSequence" ):
-        color = "Grey"
+        color = "Yellow"
     elif( codon == "deleteSequence" ):
-        color = "Salmon"
-        afterColor = "LightPink"
+        color = "MediumSlateBlue"
+        afterColor = "MediumSlateBlue"
     elif( codon == "addNote" ):
         color = "Brown"
         afterColor = "Crimson"
@@ -260,12 +260,19 @@ def printCodon(codon, genotype, readOffset, writeOffset, wd):
         color = "Indigo"
         afterColor = "DarkViolet"
     elif( codon == "pitchNote" ):
-        color = "Pink"
-        afterColor = "LightPink"
+        color = "Salmon"
+        afterColor = "Pink"
+
+    wd.write( genotype[readOffset] )
+    readOffset += 1
+    writeOffset+=1
+    if( writeOffset == 64 ):
+        wd.write( "<br>\n")
+        writeOffset = 0
 
     wd.write( "<font color='{}'><u>".format(color) )
 
-    for i in xrange(6):
+    for i in xrange(5):
         wd.write( genotype[readOffset] )
         readOffset += 1
         writeOffset+=1

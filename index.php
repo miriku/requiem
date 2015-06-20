@@ -46,7 +46,7 @@
 
     .left{
     float:left;
-    width:17%;
+    width:16%;
     overflow:hidden;
     }
 
@@ -70,13 +70,13 @@
 
     .farRight{
     float:left;
-    width:38%;
+    width:39%;
     overflow:hidden;
     }
   </style>
 </head>
 <body>
-<table width='90%' cellspacing="0" border="0" cellpadding="40">
+<table width='100%' cellspacing="0" border="0" cellpadding="40">
   <tr>
     <td>
       <h1>
@@ -149,6 +149,16 @@
         <h3>
           REQUIEM <?php print "$i"; ?>
         </h3>
+        <audio controls autoplay>
+          <source src=<?php print "\"mp3/".$i?>.mp3" type="audio/mpeg">
+        </audio>
+        <br><br>
+        <?php
+          $file1 = "png/" . $i . "a.png";
+          $file2 = "png/" . $i . "b.png";
+          if( file_exists($file1)) { print "<img src=$file1 width=100% height=62%>"; }
+          if( file_exists($file2)) { print "<br><br><img src=$file2 width=100% height=62%>"; }
+        ?>
       </div>
     </td>
   </tr>
