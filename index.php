@@ -111,7 +111,7 @@
         <br>
         <div class="stayTop">
           <h3>
-            GUIDE
+            LEGEND
           </h3>
           <?php
             require( "guide.html" );
