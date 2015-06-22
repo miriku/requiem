@@ -3,21 +3,21 @@
   <style>
     body {
       background-color: black;
-      face: "Monaco";
+      face: "Monaco, Lucida Console, Courier New";
     }
 
     h1 {
       color: White;
-      font-family: "Futura"
+      font-family: "Helvetica"
     }
 
     h3 {
       color: White;
-      font-family: "Futura"
+      font-family: "Helvetica"
     }
 
     a:link, a:active, a:visited {
-      font-family: "Futura";
+      font-family: "Helvetica";
       color: Black;
       text-decoration: none;
     }

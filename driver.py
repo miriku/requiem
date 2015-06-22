@@ -351,7 +351,7 @@ fd = open(rnaFile,'rU')
 wd = open(htmlFile,'w')
 
 wd.write( "<html><body bgcolor='black'><font color='White' " +
-            "face='Monaco'>\n" )
+            "face='Monaco, Lucida Console, Courier New'>\n" )
 
 genotype = []
 for line in fd:
