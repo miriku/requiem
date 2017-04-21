@@ -1,8 +1,8 @@
 def addC(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,6,80)
+    midi.addNote(0,0,pitch,time,6,70)
 
 def addM(midi,pitch,time):
-    midi.addNote(0,0,pitch,time,4.5,70)
+    midi.addNote(0,0,pitch,time,4.5,60)
 
 def t(measure=0, beats=0, eight=0):
     output = 0.0
